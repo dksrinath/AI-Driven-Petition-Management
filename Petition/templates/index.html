@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}AI-Driven Petition Management{% endblock %}
+{% block content %}
+<div class="hero-section text-center py-5 mb-4">
+    <div class="container">
+        <h1 class="display-4 fw-bold">AI-Driven Petition Management</h1>
+        <p class="lead col-md-8 mx-auto mb-4">A simple, efficient system for processing citizen petitions with AI-powered analysis.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Register</a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">Login</a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Key Features with icons -->
+    <div class="row g-4 py-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle mb-3 mx-auto" style="width: 65px; height: 65px;">
+                        <i class="fas fa-brain fa-2x text-primary"></i>
+                    </div>
+                    <h3 class="card-title h5 fw-bold">Smart Analysis</h3>
+                    <p class="card-text text-muted">AI automatically categorizes petitions by department and priority.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle mb-3 mx-auto" style="width: 65px; height: 65px;">
+                        <i class="fas fa-tasks fa-2x text-primary"></i>
+                    </div>
+                    <h3 class="card-title h5 fw-bold">Easy Tracking</h3>
+                    <p class="card-text text-muted">Follow your petition's journey from submission to resolution.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle mb-3 mx-auto" style="width: 65px; height: 65px;">
+                        <i class="fas fa-comments fa-2x text-primary"></i>
+                    </div>
+                    <h3 class="card-title h5 fw-bold">Direct Communication</h3>
+                    <p class="card-text text-muted">Comment system connects citizens directly with department officials.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Simple process explanation -->
+    <div class="row py-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="card-title h4 fw-bold text-center mb-4">How It Works</h2>
+                    
+                    <div class="row g-4">
+                        <div class="col-md-3 text-center">
+                            <div class="process-step">
+                                <div class="step-number">1</div>
+                                <h5 class="mt-3">Submit</h5>
+                                <p class="text-muted small">File your petition with supporting documents</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="process-step">
+                                <div class="step-number">2</div>
+                                <h5 class="mt-3">AI Analysis</h5>
+                                <p class="text-muted small">System categorizes and prioritizes</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="process-step">
+                                <div class="step-number">3</div>
+                                <h5 class="mt-3">Review</h5>
+                                <p class="text-muted small">Department officials process petition</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="process-step">
+                                <div class="step-number">4</div>
+                                <h5 class="mt-3">Resolve</h5>
+                                <p class="text-muted small">Get updates and resolution</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CTA -->
+    <div class="row py-5">
+        <div class="col-12 text-center">
+            <h2 class="h3 fw-bold">Ready to get started?</h2>
+            <p class="mb-4">Create your account now to submit and track petitions.</p>
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4">Register Now</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, rgba(58, 134, 255, 0.08) 0%, rgba(131, 56, 236, 0.08) 100%);
+        border-radius: 0 0 20px 20px;
+        padding: 60px 0;
+    }
+    .feature-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .process-step {
+        position: relative;
+        padding: 20px 15px;
+    }
+    .step-number {
+        width: 40px;
+        height: 40px;
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin: 0 auto;
+    }
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 40px 0;
+        }
+    }
+</style>
+{% endblock %}

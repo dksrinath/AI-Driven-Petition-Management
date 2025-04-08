@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Petitions - Petition System{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h1><i class="fas fa-list page-header-icon"></i>Petitions</h1>
+    {% if current_user.role == 'official' %}
+    <span class="badge bg-info fs-6">{{ current_user.department }}</span>
+    {% elif current_user.role == 'admin' %}
+    <span class="badge bg-danger fs-6">Administrator</span>
+    {% endif %}
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form action="{{ url_for('view_petitions') }}" method="get">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="">All Statuses</option>
+                        {% for status in statuses %}
+                        <option value="{{ status._id }}" {% if status_filter and status_filter|int == status._id %}selected{% endif %}>{{ status.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Priority</label>
+                    <select class="form-select" name="priority">
+                        <option value="">All Priorities</option>
+                        <option value="High" {% if priority_filter == 'High' %}selected{% endif %}>High</option>
+                        <option value="Normal" {% if priority_filter == 'Normal' %}selected{% endif %}>Normal</option>
+                        <option value="Low" {% if priority_filter == 'Low' %}selected{% endif %}>Low</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Department</label>
+                    <select class="form-select" name="department">
+                        <option value="">All Departments</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.name }}" {% if department_filter == dept.name %}selected{% endif %}>{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Search</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search petitions..." name="search" value="{{ search_query }}">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Petitions List -->
+<div class="row">
+    {% if petitions %}
+        {% for petition in petitions %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <span class="status-badge status-{{ petition_statuses[petition.status_id]|lower|replace(' ', '-') }}">
+                        {{ petition_statuses[petition.status_id] }}
+                    </span>
+                    <span class="status-badge priority-{{ petition.priority|lower }}">
+                        {{ petition.priority }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title mb-3 text-primary">{{ petition.title }}</h5>
+                    <p class="card-text text-muted mb-2">
+                        <small><i class="fas fa-building me-1"></i>{{ petition.department_name or 'Unassigned' }}</small>
+                    </p>
+                    <p class="card-text text-muted mb-3">
+                        <small><i class="fas fa-clock me-1"></i>{{ petition.upload_time|format_date }}</small>
+                    </p>
+                    
+                    {% if petition.tags and petition.tags|length > 0 %}
+                    <div class="tag-list">
+                        {% for tag in petition.tags %}
+                        <span class="tag">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-white border-0 pt-0">
+                    <a href="{{ url_for('view_petition', petition_id=petition._id) }}" class="btn btn-primary btn-sm w-100 view-petition">
+                        <i class="fas fa-eye me-1"></i>View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            No petitions found matching your criteria.
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<nav aria-label="Petitions pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if page == 1 %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('view_petitions', page=page-1, status=status_filter, priority=priority_filter, department=department_filter, search=search_query) if page > 1 else '#' }}">
+                <i class="fas fa-chevron-left"></i> Previous
+            </a>
+        </li>
+        
+        {% for p in range(1, total_pages + 1) %}
+        <li class="page-item {% if p == page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('view_petitions', page=p, status=status_filter, priority=priority_filter, department=department_filter, search=search_query) }}">{{ p }}</a>
+        </li>
+        {% endfor %}
+        
+        <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('view_petitions', page=page+1, status=status_filter, priority=priority_filter, department=department_filter, search=search_query) if page < total_pages else '#' }}">
+                Next <i class="fas fa-chevron-right"></i>
+            </a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

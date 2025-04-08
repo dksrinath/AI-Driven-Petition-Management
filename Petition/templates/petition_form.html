@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Submit Petition{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-file-upload page-header-icon"></i>Submit New Petition</h1>
+</div>
+
+<div class="row">
+    <!-- Petition Form -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Petition Form</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('upload_petition') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required 
+                            placeholder="Provide a clear, concise title" value="{{ form_data.title if form_data else '' }}">
+                        <div class="form-text">Be specific and summarize your petition in one sentence.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="content_text" class="form-label">Petition Content</label>
+                        <textarea class="form-control" id="content_text" name="content_text" rows="8" 
+                            placeholder="Describe your petition in detail...">{{ form_data.content_text if form_data else '' }}</textarea>
+                        <div class="form-text">Provide all relevant details to help officials understand your petition.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Supporting Document (Optional)</label>
+                        <input type="file" class="form-control" id="file" name="file">
+                        <div class="form-text">Upload relevant files (PDF, TXT, JPG, PNG) up to 16MB.</div>
+                    </div>
+                    
+                    <div id="file-preview" class="file-preview d-none"></div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_public" name="is_public" 
+                            {% if form_data and form_data.is_public %}checked{% endif %}>
+                        <label class="form-check-label" for="is_public">Make this petition public</label>
+                        <div class="form-text">Public petitions can be viewed by all users.</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Submit Petition
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Guidelines -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Guidelines</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Be clear and specific</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Provide all relevant details</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Our AI will automatically categorize your petition</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Upload supporting documents if needed</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Submissions in Tamil or English are accepted</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-robot me-2"></i>AI Analysis</h5>
+            </div>
+            <div class="card-body">
+                <p>When you submit your petition, our system will:</p>
+                <ul>
+                    <li>Generate a concise summary of your petition</li>
+                    <li>Determine the appropriate department</li>
+                    <li>Assess priority level based on urgency</li>
+                    <li>Create relevant tags to categorize your issue</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>What happens next?</h5>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li>Your petition will be assigned to the relevant department</li>
+                    <li>Officials will review your petition</li>
+                    <li>You'll receive status updates</li>
+                    <li>Officials will provide a resolution</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

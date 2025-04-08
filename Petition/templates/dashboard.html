@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Petition System{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <h1><i class="fas fa-tachometer-alt page-header-icon"></i>Dashboard</h1>
+    {% if current_user.role == 'official' %}
+    <span class="badge bg-info fs-6">{{ current_user.department }} Department</span>
+    {% elif current_user.role == 'admin' %}
+    <span class="badge bg-danger fs-6">Administrator</span>
+    {% endif %}
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4 stats-row">
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stats-card total">
+            <h3>{{ stats.total_petitions }}</h3>
+            <p class="mb-0">Total Petitions</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stats-card pending">
+            <h3>{{ stats.pending_count }}</h3>
+            <p class="mb-0">Pending</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stats-card progress">
+            <h3>{{ stats.in_progress_count }}</h3>
+            <p class="mb-0">In Progress</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stats-card resolved">
+            <h3>{{ stats.resolved_count }}</h3>
+            <p class="mb-0">Resolved</p>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Petition Analytics</h5>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-primary active" data-chart-type="line">Line</button>
+                    <button type="button" class="btn btn-outline-primary" data-chart-type="bar">Bar</button>
+                </div>
+            </div>
+            <div class="card-body chart-container" style="height: 300px; position: relative;">
+                <canvas id="petitionChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Status Distribution</h5>
+            </div>
+            <div class="card-body chart-container" style="height: 300px; position: relative;">
+                <canvas id="statusChart"</canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Priority Chart -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <i class="fas fa-chart-pie me-1"></i> Petition Priority Distribution
+          </div>
+            <div class="card-body chart-container" style="height: 300px;">
+                <canvas id="priorityChart"</canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Dashboard Overview</h5>
+            </div>
+            <div class="card-body">
+                <p>Welcome to your petition management dashboard. Here you can:</p>
+                <ul>
+                    <li>Track petition status</li>
+                    <li>Monitor distribution across departments</li>
+                    <li>View priority levels</li>
+                    <li>Access analytics on processing</li>
+                </ul>
+                <p class="mb-0">Use the navigation menu to access more features.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Petitions -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Recent Petitions</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if petitions %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for petition in petitions %}
+                    <tr>
+                        <td>{{ petition.title }}</td>
+                        <td>{{ petition.department_name or 'Unassigned' }}</td>
+                        <td>
+                            <span class="status-badge status-{{ petition_statuses[petition.status_id]|lower|replace(' ', '-') }}">
+                                {{ petition_statuses[petition.status_id] }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-badge priority-{{ petition.priority|lower }}">
+                                {{ petition.priority }}
+                            </span>
+                        </td>
+                        <td>{{ petition.upload_time|format_date }}</td>
+                        <td>
+                            <a href="{{ url_for('view_petition', petition_id=petition._id) }}" class="btn btn-sm btn-primary view-petition">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info m-3">
+            <i class="fas fa-info-circle me-2"></i>No petitions found.
+            {% if current_user.role == 'user' %}
+            <a href="{{ url_for('upload_petition') }}" class="alert-link">Submit your first petition</a>.
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<nav aria-label="Dashboard pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if page == 1 %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('dashboard', page=page-1) if page > 1 else '#' }}">
+                <i class="fas fa-chevron-left"></i> Previous
+            </a>
+        </li>
+        
+        {% for p in range(1, total_pages + 1) %}
+        <li class="page-item {% if p == page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('dashboard', page=p) }}">{{ p }}</a>
+        </li>
+        {% endfor %}
+        
+        <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('dashboard', page=page+1) if page < total_pages else '#' }}">
+                Next <i class="fas fa-chevron-right"></i>
+            </a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+<script>
+    // Chart data from server
+    const chartData = {{ chart_data.monthly_data|tojson }};
+    const statusData = {{ chart_data.status_data|tojson }};
+    const priorityData = {{ chart_data.priority_data|tojson }};
+</script>
+{% endblock %}
