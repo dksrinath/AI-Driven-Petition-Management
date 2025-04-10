@@ -4,6 +4,22 @@
         {"src": "Petition/app.py", "use": "@vercel/python"}
     ],
     "routes": [
+        {"src": "/static/(.*)", "dest": "Petition/static/$1"},
         {"src": "/(.*)", "dest": "Petition/app.py"}
+    ],
+    "env": {
+        "FLASK_ENV": "production",
+        "FLASK_APP": "Petition/app.py"
+    },
+    "regions": ["iad1"],
+    "headers": [
+        {
+            "source": "/(.*)",
+            "headers": [
+                { "key": "X-Content-Type-Options", "value": "nosniff" },
+                { "key": "X-Frame-Options", "value": "DENY" },
+                { "key": "X-XSS-Protection", "value": "1; mode=block" }
+            ]
+        }
     ]
 }
