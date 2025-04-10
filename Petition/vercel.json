@@ -4,6 +4,6 @@
         {"src": "Petition/app.py", "use": "@vercel/python"}
     ],
     "routes": [
-        {"src": "/(.*)", "dest": "Petition/app.py"}
+        {"src": "/(.*)", "dest": "app.py"}
     ]
 }
