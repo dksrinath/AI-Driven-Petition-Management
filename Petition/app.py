@@ -132,7 +132,7 @@ def generate_department_keywords(name):
                 "Content-Type": "application/json"
             },
             json={
-                "model": "openrouter/quasar-alpha",
+                "model": "mistralai/mistral-7b-instruct:free",
                 "messages": [
                     {"role": "system", "content": "You are an AI that generates keywords for government departments."},
                     {"role": "user", "content": f"Generate 15 specific keywords related to the '{name}' department. Include some in Tamil if possible. Respond with ONLY a valid JSON array of strings."}
@@ -204,25 +204,44 @@ def analyze_petition(text, title, language='en'):
                 "Content-Type": "application/json"
             },
             json={
-                "model": "openrouter/quasar-alpha",
+                "model": "mistralai/mistral-7b-instruct:free",
                 "messages": [
-                    {"role": "system", "content": "You are an expert petition analyst for a government system."},
+                    {"role": "system", "content": """You are an expert petition analyst for a government system in Tamil Nadu. 
+                    Your tasks include analyzing petitions to determine the most relevant department, priority, and tags. 
+                    Additionally, provide an estimated cost (in INR) and time (in days) for resolving the issue.
+                    
+                    Cost Estimation:
+                    - Low priority: ₹1,000 - ₹5,000
+                    - Normal priority: ₹5,000 - ₹20,000
+                    - High priority: ₹20,000 - ₹50,000
+                    
+                    Time Estimation:
+                    - Low priority: 7-30 days
+                    - Normal priority: 3-15 days
+                    - High priority: 1-7 days
+
+                    When analyzing petitions:
+                    1. Detect irrelevant content, spam, or random text and classify as "Low" priority under "General Administration" department.
+                    2. Look for urgent language patterns in both Tamil and English.
+                    3. Classify based on socioeconomic impact and time sensitivity.
+                    4. Provide cost and time estimates based on priority."""},
                     {"role": "user", "content": f"""
                     Analyze this petition and provide a JSON response with:
                     1. department_name: Choose ONE department from this list that is MOST relevant:
                        {', '.join(departments)}
                     
-                    2. priority: Classify as "High" for urgent matters requiring immediate attention,
-                       "Normal" for standard requests, or "Low" for minor issues.
+                    2. priority: Classify STRICTLY as:
+                       - "High" for urgent matters requiring immediate attention.
+                       - "Normal" for standard requests that should be addressed but aren't immediately critical.
+                       - "Low" for minor issues, suggestions, or irrelevant/spam messages.
                     
                     3. tags: Up to 5 relevant keywords as an array of strings.
-                    
-                    4. analysis: Brief 1-2 sentence summary of the petition.
+                    4. analysis: Brief 2-3 sentence summary.
+                    5. cost_estimate: Estimated cost in INR (use ranges based on priority).
+                    6. time_estimate: Estimated time in days (use ranges based on priority).
                     
                     Petition Title: {translated_title}
                     Petition Content: {translated_text}
-                    
-                    Provide ONLY a valid JSON response with the requested fields.
                     """}
                 ],
                 "response_format": {"type": "json_object"}
@@ -245,12 +264,34 @@ def analyze_petition(text, title, language='en'):
             priority_map = {"low": "Low", "normal": "Normal", "medium": "Normal", "high": "High", "urgent": "High"}
             result["priority"] = priority_map.get(str(result.get("priority", "")).lower(), "Normal")
             
-            # Ensure tags is a list
-            result["tags"] = result.get("tags", ["general", "petition", "review"])[:5] if isinstance(result.get("tags"), list) else ["general", "petition", "review"]
+            # Add cost and time estimation
+            cost_estimates = {
+                "Low": "₹1,000 - ₹5,000",
+                "Normal": "₹5,000 - ₹20,000",
+                "High": "₹20,000 - ₹50,000"
+            }
+            time_estimates = {
+                "Low": "7-30 days",
+                "Normal": "3-15 days",
+                "High": "1-7 days"
+            }
+            result["cost_estimate"] = cost_estimates.get(result["priority"], "₹5,000 - ₹20,000")
+            result["time_estimate"] = time_estimates.get(result["priority"], "3-15 days")
             
             # Ensure analysis exists
             if not result.get("analysis"):
                 result["analysis"] = f"Petition related to {result['department_name']} department requiring review."
+                
+            # Generate Tamil translation of the analysis if the original was in Tamil
+            if language == 'ta':
+                try:
+                    from googletrans import Translator
+                    translator = Translator()
+                    tamil_analysis = translator.translate(result["analysis"], src='en', dest='ta').text
+                    result["tamil_analysis"] = tamil_analysis
+                except Exception as e:
+                    logger.error(f"Tamil translation error: {e}")
+                    result["tamil_analysis"] = result["analysis"]
             
             return result
     except Exception as e:
@@ -795,23 +836,25 @@ def upload_petition():
 
         # Create petition
         petition_id = db.petitions.insert_one({
-            "title": title,
-            "content_text": content_text,
-            "file_name": file_name,
-            "file_id": file_id,
-            "is_public": is_public,
-            "language": language,
-            "priority": analysis["priority"],
-            "department_id": department_id,
-            "department_name": analysis["department_name"],
-            "status_id": 1,  # Pending
-            "upload_time": get_current_ist(),
-            "user_id": ObjectId(current_user.id),
-            "user_name": current_user.name,
-            "tags": analysis.get("tags", []),
-            "analysis": analysis.get("analysis", ""),
-            "last_reminder": None
-        }).inserted_id
+    "title": title,
+    "content_text": content_text,
+    "file_name": file_name,
+    "file_id": file_id,
+    "is_public": is_public,
+    "language": language,
+    "priority": analysis["priority"],
+    "department_id": department_id,
+    "department_name": analysis["department_name"],
+    "status_id": 1,  # Pending
+    "upload_time": get_current_ist(),
+    "user_id": ObjectId(current_user.id),
+    "user_name": current_user.name,
+    "tags": analysis.get("tags", []),
+    "analysis": analysis.get("analysis", ""),
+    "last_reminder": None,
+    "cost_estimate": analysis.get("cost_estimate", ""),  
+    "time_estimate": analysis.get("time_estimate", "")   
+}).inserted_id
 
         # Notify officials
         officials = list(db.users.find({"role": "official", "department": analysis["department_name"]}))

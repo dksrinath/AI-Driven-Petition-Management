@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 def analyze_petition_fallback(text, title):
-    """Rule-based petition analysis when AI service unavailable."""
+    """Enhanced rule-based petition analysis when AI service unavailable."""
     # Connect to database
     load_dotenv()
     mongo_uri = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/petition')
@@ -24,104 +24,113 @@ def analyze_petition_fallback(text, title):
         if dept_name and keywords:
             department_keywords[dept_name] = keywords
     
-    # Fallback keywords if database has no data
+    # Fallback keywords if database has no data - Enhanced with Tamil terms
     if not department_keywords:
         department_keywords = {
-            "Education": ["school", "education", "student", "teacher", "curriculum", "university", "பள்ளி", "கல்வி"],
-            "Health": ["health", "hospital", "doctor", "medical", "patient", "clinic", "மருத்துவமனை", "சுகாதாரம்"],
-            "Infrastructure": ["road", "bridge", "construction", "building", "highway", "சாலை", "பாலம்", "கட்டுமானம்"],
-            "Environment": ["pollution", "waste", "climate", "environment", "forest", "tree", "மாசு", "சுற்றுச்சூழல்"],
-            "Public Safety": ["police", "crime", "safety", "emergency", "security", "fire", "காவல்", "பாதுகாப்பு"],
-            "Housing": ["housing", "home", "rent", "shelter", "apartment", "property", "வீடு", "குடியிருப்பு"],
-            "Social Welfare": ["welfare", "benefit", "aid", "support", "pension", "நலன்", "உதவி"],
-            "Transportation": ["transport", "bus", "train", "traffic", "vehicle", "metro", "போக்குவரத்து", "பேருந்து"],
-            "Agriculture": ["farming", "crops", "irrigation", "farmers", "விவசாயம்", "பயிர்", "விவசாயி"]
+            "Education": ["school", "education", "student", "teacher", "curriculum", "university", "college", "பள்ளி", "கல்வி", "மாணவர்", "ஆசிரியர்", "பல்கலைக்கழகம்"],
+            "Health": ["health", "hospital", "doctor", "medical", "patient", "clinic", "disease", "மருத்துவமனை", "சுகாதாரம்", "மருத்துவர்", "நோய்", "நோயாளி"],
+            "Infrastructure": ["road", "bridge", "construction", "building", "highway", "electricity", "water", "சாலை", "பாலம்", "கட்டுமானம்", "மின்சாரம்", "தண்ணீர்"],
+            "Environment": ["pollution", "waste", "climate", "environment", "forest", "tree", "water", "மாசு", "சுற்றுச்சூழல்", "காடு", "மரம்", "கழிவு"],
+            "Public Safety": ["police", "crime", "safety", "emergency", "security", "fire", "accident", "காவல்", "பாதுகாப்பு", "அவசரம்", "விபத்து", "தீ"],
+            "Housing": ["housing", "home", "rent", "shelter", "apartment", "property", "வீடு", "குடியிருப்பு", "வாடகை", "சொத்து"],
+            "Social Welfare": ["welfare", "benefit", "aid", "support", "pension", "ration", "scholarship", "நலன்", "உதவி", "ஓய்வூதியம்", "ரேஷன்", "உதவித்தொகை"],
+            "Transportation": ["transport", "bus", "train", "traffic", "vehicle", "metro", "airport", "போக்குவரத்து", "பேருந்து", "ரயில்", "வாகனம்"],
+            "Agriculture": ["farming", "crops", "irrigation", "farmers", "agriculture", "seed", "விவசாயம்", "பயிர்", "விவசாயி", "நீர்ப்பாசனம்", "விதை"],
+            "General Administration": ["general", "administration", "complaint", "petition", "official", "government", "application", "நிர்வாகம்", "புகார்", "மனு", "அரசு", "விண்ணப்பம்"]
         }
     
-    # Define urgency keywords
-    urgent_keywords = ["urgent", "immediately", "emergency", "critical", "அவசரம்", "உடனடி"]
-    low_priority_keywords = ["minor", "small", "suggestion", "consider", "சிறிய", "பரிந்துரை"]
+    # Define urgency keywords with enhanced Tamil support
+    urgent_keywords = [
+        "urgent", "immediately", "emergency", "critical", "deadline", "asap", 
+        "அவசரம்", "உடனடி", "அவசியம்", "அத்தியாவசிய", "கடைசி நாள்", "விரைவாக"
+    ]
     
-    # Process text
-    combined_text = (text + " " + title).lower()
+    # Normalize and prepare text for analysis
+    combined_text = f"{title} {text}".lower()
     
-    # Calculate department scores
-    dept_scores = {}
-    for dept, keywords in department_keywords.items():
+    # Count keyword matches for each department
+    department_scores = {}
+    for department, keywords in department_keywords.items():
         score = 0
         for keyword in keywords:
-            if isinstance(keyword, str) and keyword.lower() in combined_text:
-                # Higher weight for title matches
-                if keyword.lower() in title.lower():
-                    score += 3
-                else:
-                    score += 1
-        dept_scores[dept] = score
+            if keyword.lower() in combined_text:
+                score += 1
+        department_scores[department] = score
     
-    # Select highest scoring department
-    max_score = max(dept_scores.values()) if dept_scores else 0
-    if max_score > 0:
-        # Handle ties by finding earliest keyword mention
-        top_depts = [d for d, s in dept_scores.items() if s == max_score]
-        if len(top_depts) == 1:
-            department = top_depts[0]
-        else:
-            earliest_pos = {}
-            for dept in top_depts:
-                positions = [combined_text.find(kw.lower()) for kw in department_keywords[dept] 
-                            if isinstance(kw, str) and combined_text.find(kw.lower()) >= 0]
-                earliest_pos[dept] = min(positions) if positions else len(combined_text)
-            department = min(earliest_pos.items(), key=lambda x: x[1])[0]
+    # Determine department with highest match
+    if department_scores:
+        department = max(department_scores.items(), key=lambda x: x[1])[0]
     else:
-        # Default department if no matches
-        default_dept = next((dept["name"] for dept in db.departments.find() if dept["name"] == "Social Welfare"), None)
-        department = default_dept or (db.departments.find_one() or {}).get("name") or "Social Welfare"
+        department = "General Administration"
     
-    # Determine priority
-    if any(word in combined_text for word in urgent_keywords):
-        priority = "High"
-    elif any(word in combined_text for word in low_priority_keywords):
+    # Determine urgency score based on keywords and text length
+    urgent_score = 0
+    for keyword in urgent_keywords:
+        if keyword.lower() in combined_text:
+            urgent_score += 1
+            
+    # Check if text is random or too short (potential spam)
+    is_random = len(text.strip()) < 15 or len(title.strip()) < 3
+    
+    # Determine priority based on urgency and content validity
+    if is_random:
         priority = "Low"
+    elif urgent_score >= 2:
+        priority = "High"
+    elif urgent_score == 1:
+        priority = "Normal"
     else:
         priority = "Normal"
     
-    # Extract tags
-    clean_text = re.sub(r'[^\w\s]', ' ', combined_text)
-    words = clean_text.split()
-    
-    # Remove common words
-    common_words = ["the", "and", "a", "in", "of", "to", "for", "with", "that", "this", 
-                   "i", "we", "you", "he", "she", "it", "they", "is", "are", "was", 
-                   "please", "thank", "ஒரு", "மற்றும்", "அந்த", "இந்த"]
-    
-    filtered_words = [word for word in words if word.lower() not in common_words and len(word) > 3]
-    
-    # Count word frequency
-    word_counts = {}
-    for word in filtered_words:
-        word_counts[word.lower()] = word_counts.get(word.lower(), 0) + 1
-    
-    # Get top 5 tags
-    tags = [tag for tag, _ in sorted(word_counts.items(), key=lambda x: x[1], reverse=True)[:5]]
-    
-    # Generate analysis summary
-    if priority == "High":
-        analysis = f"This is a high-priority petition related to {department.lower()} issues. "
+    # Generate tags
+    tags = []
+    if is_random:
+        tags = ["review", "unclear", "needs verification"]
     else:
-        analysis = f"This petition concerns {department.lower()} matters with {priority.lower()} priority. "
+        # Extract potential keywords from text (simple implementation)
+        words = combined_text.split()
+        for dept, keywords in department_keywords.items():
+            for keyword in keywords:
+                if keyword.lower() in combined_text and keyword.lower() not in tags:
+                    tags.append(keyword.lower())
+                    if len(tags) >= 5:
+                        break
+            if len(tags) >= 5:
+                break
     
-    if "request" in combined_text:
-        analysis += "The petitioner is requesting specific action or intervention."
-    elif "complaint" in combined_text or "issue" in combined_text:
-        analysis += "The petitioner is reporting a problem that needs resolution."
-    elif "suggest" in combined_text or "recommend" in combined_text:
-        analysis += "The petitioner is making suggestions for improvement."
+    # Generate analysis
+    if is_random:
+        analysis = "This submission appears to be incomplete or contains random text. Further verification is needed."
     else:
-        analysis += "Requires attention from the appropriate department."
+        analysis = f"Petition concerning {department} department issues. "
+        if urgent_score > 0:
+            analysis += "Contains urgent language suggesting time sensitivity. "
+        analysis += f"Classified with {len(tags)} relevant keywords."
     
-    return {
+    # Determine if the text contains Tamil
+    tamil_chars = set("அஆஇஈஉஊஎஏஐஒஓஔகஙசஞடணதநபமயரலவழளறனஜஷஸஹ")
+    has_tamil = len(set(combined_text) & tamil_chars) > 5
+    
+    # Generate Tamil analysis if needed
+    tamil_analysis = ""
+    if has_tamil:
+        # Simple Tamil analysis template
+        if is_random:
+            tamil_analysis = "இந்த மனு முழுமையற்றதாக அல்லது ஏதேனும் சம்பந்தமில்லாத உரையைக் கொண்டுள்ளது. மேலும் சரிபார்ப்பு தேவை."
+        else:
+            tamil_analysis = f"{department} துறை தொடர்பான மனு. "
+            if urgent_score > 0:
+                tamil_analysis += "அவசர கவனம் தேவைப்படுகிறது. "
+            tamil_analysis += f"{len(tags)} சிறப்புச் சொற்களுடன் வகைப்படுத்தப்பட்டுள்ளது."
+    
+    result = {
         "department_name": department,
         "priority": priority,
-        "tags": tags,
+        "tags": tags[:5],  # Limit to 5 tags
         "analysis": analysis
     }
+    
+    if has_tamil:
+        result["tamil_analysis"] = tamil_analysis
+    
+    return result

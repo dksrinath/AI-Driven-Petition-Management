@@ -359,20 +359,17 @@ footer {
   border: 2px solid white;
 }
 
-/* Chart container styles */
 .chart-container {
   position: relative;
   height: 300px;
   width: 100%;
 }
 
-/* Ensure responsive charts */
 canvas {
   max-width: 100%;
 
 }
 
-/* Improved process step display */
 .process-step {
   transition: transform 0.3s ease;
 }
@@ -381,7 +378,6 @@ canvas {
   transform: translateY(-5px);
 }
 
-/* Hero section improvements */
 .hero-section {
   background: linear-gradient(135deg, rgba(58, 134, 255, 0.1) 0%, rgba(131, 56, 236, 0.1) 100%);
   border-radius: 0 0 20px 20px;
@@ -389,7 +385,6 @@ canvas {
   margin-bottom: 30px;
 }
 
-/* Feature card improvements */
 .feature-icon {
   display: flex;
   align-items: center;
@@ -399,4 +394,68 @@ canvas {
   background-color: rgba(58, 134, 255, 0.1);
   border-radius: 50%;
   margin: 0 auto 15px;
+}
+
+.estimate-box {
+  background-color: #f8f9fa;
+  border-radius: var(--border-radius);
+  padding: 1.25rem;
+  box-shadow: 0 0.1rem 0.5rem rgba(0, 0, 0, 0.05);
+  border-left: 4px solid var(--info-color);
+}
+
+.estimate-card {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  height: 100%;
+  box-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.estimate-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+.estimate-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: rgba(58, 134, 255, 0.1);
+  margin-right: 1rem;
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.estimate-content {
+  flex-grow: 1;
+}
+
+.estimate-label {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+}
+
+.estimate-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--dark-color);
+}
+
+@media (max-width: 768px) {
+  .estimate-card {
+      margin-bottom: 1rem;
+  }
+}
+
+.system-comment {
+  background-color: rgba(248, 249, 250, 0.8);
+  border-left: 3px solid var(--info-color);
 }

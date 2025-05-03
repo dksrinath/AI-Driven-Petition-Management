@@ -34,17 +34,14 @@
             <div class="petitioner-info-title">
                 <i class="fas fa-user-circle"></i> Petitioner Information
             </div>
-            <div class="petitioner-info-item">
-                <div class="petitioner-info-label">Aadhar Number:</div>
-                <div class="petitioner-info-value">{{ verification.aadhar_no }}</div>
+            <div class="petitioner-info-item d-flex">
+                <div class="petitioner-info-label me-2">Aadhar Number:</div><div class="petitioner-info-value">{{ verification.aadhar_no }}</div>
             </div>
-            <div class="petitioner-info-item">
-                <div class="petitioner-info-label">Date of Birth:</div>
-                <div class="petitioner-info-value">{{ verification.dob }}</div>
+            <div class="petitioner-info-item d-flex">
+                <div class="petitioner-info-label me-2">Date of Birth:</div><div class="petitioner-info-value">{{ verification.dob }}</div>
             </div>
-            <div class="petitioner-info-item">
-                <div class="petitioner-info-label">Location:</div>
-                <div class="petitioner-info-value">{{ verification.location }}</div>
+            <div class="petitioner-info-item d-flex">
+                <div class="petitioner-info-label me-2">Location:</div><div class="petitioner-info-value">{{ verification.location }}</div>
             </div>
         </div>
         {% endif %}
@@ -66,6 +63,43 @@
             <h5><i class="fas fa-robot me-2"></i>AI Analysis Summary</h5>
             <p class="mb-0">{{ petition.analysis }}</p>
             <small class="text-muted">Generated during submission.</small>
+        </div>
+        {% endif %}
+        
+        <!-- Cost and Time Estimation Section -->
+        {% if petition.cost_estimate or petition.time_estimate %}
+        <div class="estimate-box mb-4">
+            <h5><i class="fas fa-chart-line me-2"></i>Resource Estimation</h5>
+            <div class="row g-3">
+                {% if petition.cost_estimate %}
+                <div class="col-md-6">
+                    <div class="estimate-card">
+                        <div class="estimate-icon">
+                            <i class="fas fa-rupee-sign"></i>
+                        </div>
+                        <div class="estimate-content">
+                            <div class="estimate-label">Estimated Cost</div>
+                            <div class="estimate-value">{{ petition.cost_estimate }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if petition.time_estimate %}
+                <div class="col-md-6">
+                    <div class="estimate-card">
+                        <div class="estimate-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="estimate-content">
+                            <div class="estimate-label">Estimated Time</div>
+                            <div class="estimate-value">{{ petition.time_estimate }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <small class="text-muted mt-2 d-block">AI-generated estimates based on petition priority and complexity.</small>
         </div>
         {% endif %}
         
