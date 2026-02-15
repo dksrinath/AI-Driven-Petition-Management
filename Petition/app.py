@@ -132,7 +132,7 @@ def generate_department_keywords(name):
                 "Content-Type": "application/json"
             },
             json={
-                "model": "mistralai/mistral-7b-instruct:free",
+                "model": "google/gemma-3n-e4b-it:free",
                 "messages": [
                     {"role": "system", "content": "You are an AI that generates keywords for government departments."},
                     {"role": "user", "content": f"Generate 15 specific keywords related to the '{name}' department. Include some in Tamil if possible. Respond with ONLY a valid JSON array of strings."}
@@ -204,7 +204,7 @@ def analyze_petition(text, title, language='en'):
                 "Content-Type": "application/json"
             },
             json={
-                "model": "mistralai/mistral-7b-instruct:free",
+                "model": "google/gemma-3n-e4b-it:free",
                 "messages": [
                     {"role": "system", "content": """You are an expert petition analyst for a government system in Tamil Nadu. 
                     Your tasks include analyzing petitions to determine the most relevant department, priority, and tags. 
@@ -1486,4 +1486,5 @@ if __name__ == '__main__':
     try:
         app.run(debug=False, host='0.0.0.0')
     except (KeyboardInterrupt, SystemExit):
+
         scheduler.shutdown()
